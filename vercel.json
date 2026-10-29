@@ -1,0 +1,8 @@
+{
+  "version": 2,
+  "buildCommand": null,
+  "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/dist/$1" }
+  ]
+}
