@@ -3,6 +3,12 @@
   "buildCommand": null,
   "outputDirectory": "dist",
   "rewrites": [
+    { "source": "/", "destination": "/dist/home-v2.html" },
+    { "source": "/index.html", "destination": "/dist/home-v2.html" },
+    { "source": "/admin.html", "destination": "/admin-hierarchy.html" },
+    { "source": "/admin-v3.html", "destination": "/admin-main.html" },
+    { "source": "/project.html", "destination": "/project-v2.html" },
+    { "source": "/projects.html", "destination": "/public-projects.html" },
     { "source": "/(.*)", "destination": "/dist/$1" }
   ]
 }
