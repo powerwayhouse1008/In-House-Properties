@@ -15,7 +15,7 @@ const mime = {
 
 http.createServer((req, res) => {
   const requested = decodeURIComponent((req.url || '/').split('?')[0]);
-  const relative = requested === '/' ? 'index.html' : (requested === '/admin.html' ? 'admin-dashboard.html' : requested.replace(/^\/+/, ''));
+  const relative = requested === '/' ? 'index.html' : (requested === '/admin.html' ? 'admin-v2.html' : requested.replace(/^\/+/, ''));
   const file = path.resolve(root, relative);
 
   if (!file.startsWith(root + path.sep) && file !== path.join(root, 'index.html')) {
