@@ -3,6 +3,10 @@
 ## 1. Quy tắc bắt buộc
 
 - Không tạo thêm bản sao như `*-v2.html`, `*-v3.html`, `*-new.html` hoặc homepage phụ.
+- Mặc định mọi thay đổi là **additive**: chỉ thêm hoặc chỉnh đúng phần được yêu cầu; không thay toàn bộ file.
+- Trước khi sửa phải đọc cấu trúc hiện tại, giữ nguyên section, dữ liệu, liên kết, ngôn ngữ và chức năng đang có.
+- Không dùng cách xóa file rồi tạo lại file khác cho một thay đổi nhỏ.
+- Nếu cần thay đổi kiến trúc lớn, phải báo rõ phần nào sẽ bị ảnh hưởng trước khi thực hiện.
 - Sửa đúng file canonical được ghi trong tài liệu này.
 - Giữ nguyên luồng liên kết: **Trang chủ → Dự án → Căn hộ**.
 - Tên dự án là dữ liệu public; mã căn là dữ liệu nội bộ CMS và không được hiển thị trên public.
