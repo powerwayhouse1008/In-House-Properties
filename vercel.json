@@ -4,7 +4,6 @@
   "outputDirectory": "dist",
   "rewrites": [
     { "source": "/admin", "destination": "/admin-v3.html" },
-    { "source": "/admin-project.html", "destination": "/admin-project-editor.html" },
-    { "source": "/(?!api/)(.*)", "destination": "/dist/$1" }
+    { "source": "/admin-project.html", "destination": "/admin-project-editor.html" }
   ]
 }
