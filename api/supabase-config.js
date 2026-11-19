@@ -5,6 +5,8 @@ export default function handler(req, res) {
     publishableKey:
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+      process.env.SUPABASE_PUBLISHABLE_KEY ||
+      process.env.SUPABASE_ANON_KEY ||
       '',
     bucket: process.env.SUPABASE_STORAGE_BUCKET || 'project-media'
   });
