@@ -1,4 +1,4 @@
-name: Deploy Powerway website
+name: Validate Powerway website
 
 on:
   push:
@@ -7,28 +7,24 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: true
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  validate:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
-      - name: Upload website artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./dist
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Validate Vercel configuration
+        run: node -e "JSON.parse(require('fs').readFileSync('vercel.json','utf8')); console.log('vercel.json OK')"
+      - name: Validate HTML scripts
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          for (const file of fs.readdirSync('dist').filter((name) => name.endsWith('.html'))) {
+            const source = fs.readFileSync(`dist/${file}`, 'utf8');
+            for (const match of source.matchAll(/<script(?: src="[^"]+")?>([\s\S]*?)<\/script>/g)) {
+              if (match[1].trim()) new Function(`return (async()=>{${match[1]}})`);
+            }
+            console.log(`${file} OK`);
+          }
+          NODE
