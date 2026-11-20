@@ -1,6 +1,7 @@
 function hash(value){let h=2166136261;for(let i=0;i<value.length;i++){h^=value.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(16)}
 
 export default async function handler(req,res){
+ try {
   if(req.method!=='POST')return res.status(405).json({error:'Method not allowed'});
   const {text,source='vi',target='en',context='website'}=req.body||{};
   if(!text||source===target)return res.status(200).json({text:text||'',cached:true});
@@ -18,4 +19,7 @@ export default async function handler(req,res){
   if(!translated)return res.status(502).json({error:'Hy-MT2 returned no translation'});
   await fetch(url+'/rest/v1/translation_cache',{method:'POST',headers:{...headers,Prefer:'resolution=merge-duplicates'},body:JSON.stringify({cache_key:cacheKey,source_language:source,target_language:target,source_text:text,translated_text:translated,context})});
   return res.status(200).json({text:translated,cached:false});
+ } catch (error) {
+   return res.status(500).json({error:'Translation function error',detail:error?.message||String(error)});
+ }
 };
