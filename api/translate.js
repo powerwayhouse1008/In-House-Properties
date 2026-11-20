@@ -13,8 +13,9 @@ export default async function handler(req,res){
   const headers={apikey:key,Authorization:'Bearer '+key,'Content-Type':'application/json'};
   const cached=await fetch(url+'/rest/v1/translation_cache?cache_key=eq.'+encodeURIComponent(cacheKey)+'&select=translated_text',{headers}).then(r=>r.ok?r.json():[]).catch(()=>[]);
   if(cached?.[0]?.translated_text)return res.status(200).json({text:cached[0].translated_text,cached:true});
-  const model=await fetch(modelUrl,{method:'POST',headers:{'Content-Type':'application/json',...(process.env.HYMT2_API_KEY?{Authorization:'Bearer '+process.env.HYMT2_API_KEY}:{})},body:JSON.stringify({model:process.env.HYMT2_MODEL||'hy-mt2',messages:[{role:'system',content:'Translate faithfully. Return only the translation.'},{role:'user',content:'Translate from '+source+' to '+target+':\n'+text}],temperature:0})});
-  if(!model.ok)return res.status(502).json({error:'Hy-MT2 translation failed'});
+  const endpoint=/\/chat\/completions\/?$/i.test(modelUrl)?modelUrl:modelUrl.replace(/\/$/,'')+'/chat/completions';
+  const model=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json',...(process.env.HYMT2_API_KEY?{Authorization:'Bearer '+process.env.HYMT2_API_KEY}:{})},body:JSON.stringify({model:process.env.HYMT2_MODEL||'hy-mt2',messages:[{role:'system',content:'Translate faithfully. Return only the translation.'},{role:'user',content:'Translate from '+source+' to '+target+':\n'+text}],temperature:0})});
+  if(!model.ok)return res.status(502).json({error:'Hy-MT2 translation failed',status:model.status,detail:(await model.text()).slice(0,500)});
   const body=await model.json();const translated=body.translated_text||body.translation||body.text||body.result||body.choices?.[0]?.message?.content;
   if(!translated)return res.status(502).json({error:'Hy-MT2 returned no translation'});
   await fetch(url+'/rest/v1/translation_cache',{method:'POST',headers:{...headers,Prefer:'resolution=merge-duplicates'},body:JSON.stringify({cache_key:cacheKey,source_language:source,target_language:target,source_text:text,translated_text:translated,context})});
