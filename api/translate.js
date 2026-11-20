@@ -1,20 +1,29 @@
 function hash(value){let h=2166136261;for(let i=0;i<value.length;i++){h^=value.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(16)}
 
+const languageNames = new Intl.DisplayNames(['en'], {type:'language',fallback:'none'});
+
+function languageName(code) {
+  if (typeof code !== 'string') return undefined;
+  try { return languageNames.of(code); } catch { return undefined; }
+}
+
 export default async function handler(req,res){
  try {
   if(req.method!=='POST')return res.status(405).json({error:'Method not allowed'});
   const {text,source='vi',target='en',context='website'}=req.body||{};
   if(!text||source===target)return res.status(200).json({text:text||'',cached:true});
+  const sourceName=languageName(source),targetName=languageName(target);
+  if(!sourceName||!targetName)return res.status(400).json({error:'Unsupported translation language'});
   const url=process.env.SUPABASE_URL||process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key=process.env.SUPABASE_SERVICE_ROLE_KEY;
   const modelUrl=process.env.HYMT2_TRANSLATION_API_URL;
   if(!url||!key||!modelUrl)return res.status(500).json({error:'Missing translation configuration'});
-  const cacheKey=hash([source,target,context,text].join('|'));
+  const cacheKey=hash(['hy-mt2-language-names',source,target,context,text].join('|'));
   const headers={apikey:key,Authorization:'Bearer '+key,'Content-Type':'application/json'};
   const cached=await fetch(url+'/rest/v1/translation_cache?cache_key=eq.'+encodeURIComponent(cacheKey)+'&select=translated_text',{headers}).then(r=>r.ok?r.json():[]).catch(()=>[]);
   if(cached?.[0]?.translated_text)return res.status(200).json({text:cached[0].translated_text,cached:true});
   const endpoint=/\/chat\/completions\/?$/i.test(modelUrl)?modelUrl:modelUrl.replace(/\/$/,'')+'/chat/completions';
-  const model=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json',...(process.env.HYMT2_API_KEY?{Authorization:'Bearer '+process.env.HYMT2_API_KEY}:{})},body:JSON.stringify({model:process.env.HYMT2_MODEL||'hy-mt2',messages:[{role:'system',content:'Translate faithfully. Return only the translation.'},{role:'user',content:'Translate from '+source+' to '+target+':\n'+text}],temperature:0})});
+  const model=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json',...(process.env.HYMT2_API_KEY?{Authorization:'Bearer '+process.env.HYMT2_API_KEY}:{})},body:JSON.stringify({model:process.env.HYMT2_MODEL||'hy-mt2',messages:[{role:'system',content:'Translate faithfully. Return only the translation.'},{role:'user',content:'Translate the following '+sourceName+' text into '+targetName+'.\n\n'+text}],temperature:0})});
   if(!model.ok)return res.status(502).json({error:'Hy-MT2 translation failed',status:model.status,detail:(await model.text()).slice(0,500)});
   const body=await model.json();const translated=body.translated_text||body.translation||body.text||body.result||body.choices?.[0]?.message?.content;
   if(!translated)return res.status(502).json({error:'Hy-MT2 returned no translation'});
